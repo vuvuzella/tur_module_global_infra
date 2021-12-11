@@ -42,3 +42,9 @@ variable "tf_remote_state_profile" {
   description = "the profile to be used when retrieving the remote state "
   type = string
 }
+
+variable "custom_tags" {
+  description = "Custom tags to set on the instances in the ASG"
+  type = map(string)
+  default = {}
+}
