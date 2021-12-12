@@ -21,11 +21,20 @@ data "terraform_remote_state" "db" {
 }
 
 data "template_file" "user_data" {
+    count = var.enable_new_user_data ? 0 : 1
     template = file("${path.module}/user-data.sh")
     vars = {
       "server_port" = var.webserver_port,
       "db_address"  = data.terraform_remote_state.db.outputs.address
       "db_port"     = data.terraform_remote_state.db.outputs.port
+    }
+}
+
+data "template_file" "new_user_data" {
+    count = var.enable_new_user_data ? 1 : 0
+    template = file("${path.module}/new-user-data.sh")
+    vars = {
+        "server_port" = var.webserver_port
     }
 }
 
@@ -49,7 +58,9 @@ resource "aws_launch_configuration" "example" {
     image_id        = "ami-0567f647e75c7bc05"
     instance_type   = var.instance_type
     security_groups = [aws_security_group.ec2instance_example_sg.id]
-    user_data       = data.template_file.user_data.rendered
+    user_data       = (length(data.template_file.user_data[*]) > 0
+        ? data.template_file.user_data[0].rendered
+        : data.template_file.new_user_data[0].rendered)
 
     // create_before destroy is required when using a launch config with auto scaling group
     // https://www.terraform.io/docs/providers/aws/r/launch_configuration.html
@@ -200,4 +211,24 @@ resource "aws_lb_listener_rule" "asg" {
       type = "forward"
       target_group_arn = aws_lb_target_group.asg.arn
     }
+}
+
+resource "aws_autoscaling_schedule" "scale_out_during_business_hours" {
+  count = var.enable_autoscaling ? 1 : 0
+  scheduled_action_name = "${var.cluster_name}-scale-out-during-business-hours"
+  min_size = var.min_size
+  max_size = var.max_size
+  desired_capacity = 10
+  recurrence = "0 9 * * *"
+  autoscaling_group_name = aws_autoscaling_group.example.name
+}
+
+resource "aws_autoscaling_schedule" "scale_in_at_night" {
+  count = var.enable_autoscaling ? 1 : 0
+  scheduled_action_name = "${var.cluster_name}-scale-in-at-night"
+  min_size = var.min_size
+  max_size = var.max_size
+  desired_capacity = 2
+  recurrence = "0 17 * * *"
+  autoscaling_group_name = aws_autoscaling_group.example.name
 }
