@@ -72,9 +72,9 @@ resource "aws_launch_configuration" "example" {
     }
 }
 
-// resource aws_launch_template "example" {
-//     instance_type = var.instance_type
-// }
+resource aws_launch_template "example" {
+    instance_type = var.instance_type
+}
 
 resource "aws_autoscaling_group" "example" {
     launch_configuration = aws_launch_configuration.example.name
@@ -88,9 +88,9 @@ resource "aws_autoscaling_group" "example" {
     min_size        = var.min_size
     max_size        = var.max_size
 
-    // launch_template {
-    //     id = aws_launch_template.example.id
-    // }
+    launch_template {
+        id = aws_launch_template.example.id
+    }
 
     tag {
         key                 = "Name"
