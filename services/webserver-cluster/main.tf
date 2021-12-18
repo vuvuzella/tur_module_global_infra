@@ -88,9 +88,9 @@ resource "aws_autoscaling_group" "example" {
     min_size        = var.min_size
     max_size        = var.max_size
 
-    launch_template {
-        id = aws_launch_template.example.id
-    }
+    // launch_template {
+    //     id = aws_launch_template.example.id
+    // }
 
     tag {
         key                 = "Name"
