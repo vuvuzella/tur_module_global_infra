@@ -51,6 +51,9 @@ resource "aws_security_group" "ec2instance_example_sg" {
         security_groups     = []
         self                = true  // whether the security group itself will be added as source to the ingress/egress rule
     }]
+    tags = {
+        name = "nonprod-webserver-cluster"
+    }
 }
 
 // configure auto scaling group
