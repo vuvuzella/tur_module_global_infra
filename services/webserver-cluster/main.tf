@@ -58,6 +58,10 @@ resource "aws_security_group" "ec2instance_example_sg" {
     tags = {
         name = "nonprod-webserver-cluster"
     }
+
+    lifecycle {
+      create_before_destroy = true
+    }
 }
 
 // configure auto scaling group
