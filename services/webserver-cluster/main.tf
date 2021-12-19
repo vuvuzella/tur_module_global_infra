@@ -21,22 +21,26 @@ data "terraform_remote_state" "db" {
 }
 
 data "template_file" "user_data" {
-    count = var.enable_new_user_data ? 0 : 1
+    // count = var.enable_new_user_data ? 0 : 1
     template = file("${path.module}/user-data.sh")
     vars = {
-      "server_port" = var.webserver_port,
-      "db_address"  = data.terraform_remote_state.db.outputs.address
-      "db_port"     = data.terraform_remote_state.db.outputs.port
+      server_port = var.webserver_port,
+      db_address  = data.terraform_remote_state.db.outputs.address
+      db_port     = data.terraform_remote_state.db.outputs.port
+      server_text = var.server_text
     }
 }
 
-data "template_file" "new_user_data" {
-    count = var.enable_new_user_data ? 1 : 0
-    template = file("${path.module}/new-user-data.sh")
-    vars = {
-        "server_port" = var.webserver_port
-    }
-}
+// data "template_file" "new_user_data" {
+//     count = var.enable_new_user_data ? 1 : 0
+//     template = file("${path.module}/new-user-data.sh")
+//     vars = {
+//         server_port = var.webserver_port
+//         db_address  = data.terraform_remote_state.db.outputs.address
+//         db_port     = data.terraform_remote_state.db.outputs.port
+//         server_text = var.server_text
+//     }
+// }
 
 resource "aws_security_group" "ec2instance_example_sg" {
     name = "${var.cluster_name}-instance"
@@ -58,12 +62,13 @@ resource "aws_security_group" "ec2instance_example_sg" {
 
 // configure auto scaling group
 resource "aws_launch_configuration" "example" {
-    image_id        = "ami-0567f647e75c7bc05"
+    image_id        = var.ami
     instance_type   = var.instance_type
     security_groups = [aws_security_group.ec2instance_example_sg.id]
-    user_data       = (length(data.template_file.user_data[*]) > 0
-        ? data.template_file.user_data[0].rendered
-        : data.template_file.new_user_data[0].rendered)
+    user_data       = data.template_file.user_data.rendered
+    // user_data       = (length(data.template_file.user_data[*]) > 0
+    //     ? data.template_file.user_data[0].rendered
+    //     : data.template_file.new_user_data[0].rendered)
 
     // create_before destroy is required when using a launch config with auto scaling group
     // https://www.terraform.io/docs/providers/aws/r/launch_configuration.html
@@ -88,6 +93,7 @@ resource "aws_autoscaling_group" "example" {
     min_size        = var.min_size
     max_size        = var.max_size
 
+    // Use launch configuration instead
     // launch_template {
     //     id = aws_launch_template.example.id
     // }
