@@ -31,3 +31,15 @@ variable "db_allocated_storage" {
   description = "The number of allocated storage"
   default = 10
 }
+
+variable "db_skip_final_snapshot" {
+  type = bool
+  description = "Set to false if require creation of snapshot before destroy"
+  default = false
+}
+
+variable "db_final_snapshot_name" {
+  type = string
+  description = "name of the snapshot to be created before destroying the db"
+  default = "mysql-rds"
+}
