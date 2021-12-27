@@ -16,7 +16,7 @@ resource "aws_db_instance" "db_example" {
   username                  = var.db_admin_username
   password                  = jsondecode(data.aws_secretsmanager_secret_version.db_password.secret_string).value
   skip_final_snapshot       = var.db_skip_final_snapshot
-  final_snapshot_identifier = "${var.db_final_snapshot_name}-${timestamp()}"
+  final_snapshot_identifier = "${var.db_final_snapshot_name}"
 
   lifecycle {
     create_before_destroy = true
