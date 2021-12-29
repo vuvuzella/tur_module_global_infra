@@ -1,3 +1,13 @@
+provider "aws" {
+  profile = "admin-dev"
+  region = "ap-southeast-2"
+}
+
+terraform {
+  required_version = ">=0.12"
+  # partial configuration. The rest will be filled up by terragrunt
+  backend "s3" {}
+}
 locals {
   http_port     = 80
   any_port      = 0

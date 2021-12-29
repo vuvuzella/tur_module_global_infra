@@ -3,6 +3,13 @@ provider "aws" {
   region = "ap-southeast-2"
 }
 
+terraform {
+  required_version = ">=0.12"
+  # partial configuration. The rest will be filled up by terragrunt
+  backend "s3" {}
+}
+
+
 data "aws_secretsmanager_secret_version" "db_password" {
   secret_id = var.db_password_secrets_id
 }
