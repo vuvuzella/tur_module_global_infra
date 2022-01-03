@@ -35,7 +35,7 @@ variable "db_allocated_storage" {
 variable "db_skip_final_snapshot" {
   type = bool
   description = "Set to false if require creation of snapshot before destroy"
-  default = false
+  default = true
 }
 
 variable "db_final_snapshot_name" {

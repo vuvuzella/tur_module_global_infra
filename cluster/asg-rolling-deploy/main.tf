@@ -5,13 +5,15 @@ provider "aws" {
 
 terraform {
   required_version = ">=0.12"
-  backend "s3" {}
+  // backend "s3" {}
 }
 
 locals {
   http_port     = 80
   any_port      = 0
   any_protocol  = "-1"
+  all_ipv4      = ["0.0.0.0/0"]
+  all_ipv6      = ["::/0"]
 }
 
 // TODO: Template File as a variable?
@@ -19,7 +21,7 @@ resource "aws_launch_configuration" "example" {
     image_id        = var.ami
     instance_type   = var.instance_type
     security_groups = [aws_security_group.ec2instance_example_sg.id]
-    user_data       = data.template_file.user_data.rendered
+    user_data       = var.user_data
 
     // create_before destroy is required when using a launch config with auto scaling group
     // https://www.terraform.io/docs/providers/aws/r/launch_configuration.html
@@ -29,26 +31,26 @@ resource "aws_launch_configuration" "example" {
 }
 
 resource "aws_autoscaling_group" "example" {
-  name = "${var.cluster_name}-${aws_launch_configuration.example.name}"
-  launch_configuration = aws_launch_configuration.example.name
-  vpc_zone_identifier  = data.aws_subnet_ids.default.ids
+  name                  = "${var.cluster_name}-${aws_launch_configuration.example.name}"
+  launch_configuration  = aws_launch_configuration.example.name
+  vpc_zone_identifier   = var.subnet_ids
 
   // take advantage of first-class integration between ASG and ALB
-  target_group_arns = [ aws_lb_target_group.asg.arn ]
-  health_check_type = "ELB"   // default is EC2. 
+  target_group_arns     = var.target_group_arns
+  health_check_type     = var.health_check_type   // default is EC2. 
 
   // instance_type   = var.instance_type
-  min_size        = var.min_size
-  max_size        = var.max_size
+  min_size              = var.min_size
+  max_size              = var.max_size
 
   // Wait for at least this many instances to pass health checks
   // before considering the ASG deployment complete
-  min_elb_capacity = var.min_size
+  min_elb_capacity      = var.min_size
 
   lifecycle {
     create_before_destroy = true
   }
-
+  
   tag {
       key                 = "Name"
       value               = "${var.cluster_name}-example"
@@ -58,33 +60,11 @@ resource "aws_autoscaling_group" "example" {
   dynamic "tag" {
       for_each = var.custom_tags
       content {
-          key = tag.key
-          value = tag.value
+          key                 = tag.key
+          value               = tag.value
           propagate_at_launch = true
       }
   }
-}
-
-resource "aws_security_group_rule" "allow_http_inbound" {
-  security_group_id = aws_security_group.alb.id
-
-  type              = "ingress"
-  cidr_blocks       = local.all_ipv4
-  description       = "ingress for application load balancer"
-  from_port         = local.http_port
-  protocol          = "tcp"
-  to_port           = local.http_port
-}
-
-resource "aws_security_group_rule" "allow_all_outbound" {
-  security_group_id = aws_security_group.alb.id
-
-  type              = "egress"
-  cidr_blocks       = local.all_ipv4
-  description       = "egress for application load balancer"
-  from_port         = local.http_port
-  protocol          = local.any_protocol
-  to_port           = local.http_port
 }
 
 resource "aws_autoscaling_schedule" "scale_out_during_business_hours" {
