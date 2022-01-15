@@ -1,4 +1,4 @@
-package test
+package HelloWorldAppTest
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ func TestHelloWorldAppExample(t *testing.T) {
 	mockPort := "12345"
 
 	opts := &terraform.Options{
-		TerraformDir: "../example",
+		TerraformDir: "../examples/services/hello-world-app",
 		Vars: map[string]interface{}{
 			"mysql_config": map[string]interface{}{
 				"address": mockAddress,
