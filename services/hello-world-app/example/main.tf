@@ -20,6 +20,11 @@ variable "mysql_config" {
     port = string
   })
   description = "Outputs from the mysql data store module"
+
+  default = {
+    address = "default address"
+    port = "12345"
+  }
 }
 
 module "hello_world_app" {
