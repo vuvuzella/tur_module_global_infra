@@ -14,12 +14,12 @@ terraform {
   }
 }
 
-module "mysql" {
-  // source = "../../../../../../../modules/data-stores/mysql"
-  source = "../../../data-stores/mysql"
-
-  db_name                 = "mysql-test"
-  db_password_secrets_id  = "mysql-master-password-stage"
+variable "mysql_config" {
+  type = object({
+    address = string
+    port = string
+  })
+  description = "Outputs from the mysql data store module"
 }
 
 module "hello_world_app" {
@@ -34,5 +34,9 @@ module "hello_world_app" {
 
   server_text             = "Testing module"
 
-  mysql_config            = module.mysql
+  mysql_config            = var.mysql_config
+}
+
+output "alb_dns_name" {
+  value = module.hello_world_app.alb_dns_name
 }

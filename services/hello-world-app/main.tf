@@ -18,7 +18,7 @@ locals {
   # since data sources now use the count parameter, they are now an array
   # hence we use index in an array to get their ids
   subnet_ids = (var.subnet_ids == null
-    ? [data.aws_subnet_ids.default[0].id]
+    ? data.aws_subnet_ids.default[0].ids
     : var.subnet_ids)
 
   # since data sources now use the count parameter, they are now an array
