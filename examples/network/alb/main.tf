@@ -6,7 +6,7 @@ provider "aws" {
 terraform {
   backend "s3" {
     bucket          = "admin-dev-tf-state"
-    key             = "test/data-store/mysql/terraform.tfstate"
+    key             = "test/network/alb/terraform.tfstate"  // make this to come from an environment variable or a test runner
     region          = "ap-southeast-2"
     dynamodb_table  = "terraform-up-and-running-locks"
     encrypt         = true
@@ -26,8 +26,18 @@ locals {
   mysql_secrets_id = "mysql-master-password-stage"
 }
 
-module "example" {
-  source = "../"
-  db_password_secrets_id = local.mysql_secrets_id
-  db_name = "turMySQLdbTest"
+module "alb_test" {
+  alb_name = var.alb_name
+  source = "../../../network/alb"
+  subnet_ids = data.aws_subnet_ids.default.ids
+}
+
+variable "alb_name" {
+  type = string
+  description = "Name to set to the lab"
+  default = "tur-alb"
+}
+
+output "alb_dns_name" {
+  value = module.alb_test.alb_dns_name
 }

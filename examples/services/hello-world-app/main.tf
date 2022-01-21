@@ -32,7 +32,7 @@ module "hello_world_app" {
   
   min_size                = 2
   max_size                = 2
-  environment             = "test"
+  environment             = var.environment
   instance_type           = "t2.micro"
   tf_remote_state_profile = "admin-dev"
   enable_autoscaling      = false
@@ -40,6 +40,12 @@ module "hello_world_app" {
   server_text             = "Testing module"
 
   mysql_config            = var.mysql_config
+}
+
+variable "environment" {
+  type = string
+  description = "Name for the hello world app sample test"
+  default = "Example"
 }
 
 output "alb_dns_name" {

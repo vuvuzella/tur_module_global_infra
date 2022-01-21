@@ -6,10 +6,14 @@ import (
 	"time"
 
 	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
+	"github.com/gruntwork-io/terratest/modules/random"
 	terraform "github.com/gruntwork-io/terratest/modules/terraform"
 )
 
 func TestHelloWorldAppExample(t *testing.T) {
+
+	t.Parallel()
+
 	mockAddress := "Mock test"
 	mockPort := "12345"
 
@@ -20,6 +24,7 @@ func TestHelloWorldAppExample(t *testing.T) {
 				"address": mockAddress,
 				"port":    mockPort,
 			},
+			"environment": fmt.Sprintf("test-%s", random.UniqueId()),
 		},
 	}
 
